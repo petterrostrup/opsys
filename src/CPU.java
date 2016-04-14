@@ -2,25 +2,39 @@ public class CPU {
 
     private Queue queue;
     private Statistics statistics;
-    private long maxCPUtime;
+    private long maxCpuTime;
     private Gui gui;
     private Process activeProcess;
-    private EventQueue eventQueue;
-    private long lastEvent ;
 
-    public CPU(Queue CPUqueue, Statistics statistics, long maxCPUtime, Gui gui, EventQueue eventqueue) {
-        this.queue = CPUqueue;
+    public CPU(Queue cpuQueue, Statistics statistics, long maxCpuTime, Gui gui) {
+        this.queue = cpuQueue;
         this.statistics = statistics;
-        this.maxCPUtime = maxCPUtime;
+        this.maxCpuTime = maxCpuTime;
         this.gui = gui;
         this.activeProcess = null;
-        this.eventQueue = eventqueue;
-        lastEvent = 0 ;
     }
 
-    public boolean isIdle(){
-        return this.activeProcess==null;
+    public Event switchProcess(long clock) {
+        if(activeProcess != null) {
+            if(!queue.isEmpty()) {
+                queue.insert(activeProcess);
+                activeProcess = (Process) queue.removeNext();
+                // TODO: Update statistics
+            }
+        }
+        else {
+            if(!queue.isEmpty()) {
+                activeProcess = (Process) queue.removeNext();
+            }
+            return    
+        }
     }
 
+    public boolean isIdle() {
+        return this.activeProcess == null;
+    }
 
+    public void insertProcess(Process process) {
+        queue.insert(process);
+    }
 }

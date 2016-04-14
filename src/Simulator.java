@@ -5,6 +5,8 @@ import java.io.*;
  */
 public class Simulator implements Constants
 {
+	private CPU cpu;
+	private IO io;
 	/** The queue of events to come */
     private EventQueue eventQueue;
 	/** Reference to the memory unit */
@@ -41,6 +43,8 @@ public class Simulator implements Constants
 		statistics = new Statistics();
 		eventQueue = new EventQueue();
 		memory = new Memory(memoryQueue, memorySize, statistics);
+		io = new IO(ioQueue, avgIoTime, statistics);
+		cpu = new CPU(cpuQueue, statistics, maxCpuTime, gui);
 		clock = 0;
 		// Add code as needed
     }
@@ -126,23 +130,26 @@ public class Simulator implements Constants
 	 * memory for the processes.
 	 */
 	private void flushMemoryQueue() {
-		Process p = memory.checkMemory(clock);
+		Process process = memory.checkMemory(clock);
 		// As long as there is enough memory, processes are moved from the memory queue to the cpu queue
-		while(p != null) {
-			
-			// TODO: Add this process to the CPU queue!
-			// Also add new events to the event queue if needed
+		while(process != null) {
+
+			cpu.insertProcess(process);
+			if(cpu.isIdle()) {
+				eventQueue.insertEvent(new Event(SWITCH_PROCESS, clock));
+			}
+			// TODO: Also add new events to the event queue if needed
 
 			// Since we haven't implemented the CPU and I/O device yet,
 			// we let the process leave the system immediately, for now.
-			memory.processCompleted(p);
+			memory.processCompleted(process);
 			// Try to use the freed memory:
 			flushMemoryQueue();
 			// Update statistics
-			p.updateStatistics(statistics);
+			process.updateStatistics(statistics);
 
 			// Check for more free memory
-			p = memory.checkMemory(clock);
+			process = memory.checkMemory(clock);
 		}
 	}
 
@@ -150,7 +157,8 @@ public class Simulator implements Constants
 	 * Simulates a process switch.
 	 */
 	private void switchProcess() {
-		// Incomplete
+		Event event = cpu.switchProcess(clock);
+		eventQueue.insertEvent(event);
 	}
 
 	/**
@@ -165,7 +173,7 @@ public class Simulator implements Constants
 	 * perform an I/O operation.
 	 */
 	private void processIoRequest() {
-		// Incomplete
+		io.addIoRequest()
 	}
 
 	/**
